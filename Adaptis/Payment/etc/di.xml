@@ -35,6 +35,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="initialize" xsi:type="string">AdaptisPaymentInitializeCommand</item>
+                <item name="refund" xsi:type="string">Adaptis\Payment\Gateway\Command\RefundCommand</item>
             </argument>
         </arguments>
     </virtualType>

@@ -6,6 +6,11 @@ class Config extends \Magento\Payment\Gateway\Config\Config
 {
     public const KEY_MERCHANT_CODE = 'merchant_code';
     public const KEY_MERCHANT_KEY = 'merchant_key';
+    public const KEY_SANDBOX_MERCHANT_CODE = 'sandbox_merchant_code';
+    public const KEY_SANDBOX_MERCHANT_KEY = 'sandbox_merchant_key';
+    public const KEY_PRODUCTION_MERCHANT_CODE = 'production_merchant_code';
+    public const KEY_PRODUCTION_MERCHANT_KEY = 'production_merchant_key';
+    public const KEY_BACKEND_URL = 'backend_url';
     public const KEY_SHOW_AVAILABLE_PAYMENT_TYPES = 'show_available_payment_types';
     public const KEY_ONLINE_BANKING_METHODS = 'online_banking_methods';
     public const KEY_CREDIT_CARD_METHODS = 'credit_card_methods';
@@ -73,6 +78,16 @@ class Config extends \Magento\Payment\Gateway\Config\Config
     public const PAYMENT_STATUS_SUCCESS = "1300";
     public const PAYMENT_STATUS_PENDING = "1100";
 
+    public const REFUND_STATUS_PENDING = "3100";
+    public const REFUND_STATUS_PROCESSING = "3200";
+    public const REFUND_STATUS_REFUNDED = "3300";
+
+    public const SANDBOX_BASE_URL = 'https://pay.meglabox.com';
+    public const PRODUCTION_BASE_URL = 'https://pay.adaptispay.com';
+    public const HOSTED_PAYMENT_PATH = '/entry/ipayhosted';
+    public const REFUND_PATH = '/merchantrefund';
+    public const REQUERY_PATH = '/merchantrequery';
+
     /**
      * Get merchant code
      *
@@ -80,7 +95,11 @@ class Config extends \Magento\Payment\Gateway\Config\Config
      */
     public function getMerchantCode(): ?string
     {
-        return $this->getValue(self::KEY_MERCHANT_CODE);
+        $merchantCode = $this->getSandbox()
+            ? $this->getValue(self::KEY_SANDBOX_MERCHANT_CODE)
+            : $this->getValue(self::KEY_PRODUCTION_MERCHANT_CODE);
+
+        return $merchantCode ?: $this->getValue(self::KEY_MERCHANT_CODE);
     }
 
     /**
@@ -90,7 +109,85 @@ class Config extends \Magento\Payment\Gateway\Config\Config
      */
     public function getMerchantKey(): ?string
     {
-        return $this->getValue(self::KEY_MERCHANT_KEY);
+        $merchantKey = $this->getSandbox()
+            ? $this->getValue(self::KEY_SANDBOX_MERCHANT_KEY)
+            : $this->getValue(self::KEY_PRODUCTION_MERCHANT_KEY);
+
+        return $merchantKey ?: $this->getValue(self::KEY_MERCHANT_KEY);
+    }
+
+    public function getSandboxMerchantCode(): ?string
+    {
+        return $this->getValue(self::KEY_SANDBOX_MERCHANT_CODE);
+    }
+
+    public function getSandboxMerchantKey(): ?string
+    {
+        return $this->getValue(self::KEY_SANDBOX_MERCHANT_KEY);
+    }
+
+    public function getProductionMerchantCode(): ?string
+    {
+        return $this->getValue(self::KEY_PRODUCTION_MERCHANT_CODE);
+    }
+
+    public function getProductionMerchantKey(): ?string
+    {
+        return $this->getValue(self::KEY_PRODUCTION_MERCHANT_KEY);
+    }
+
+    public function getBaseUrl(): string
+    {
+        return $this->getSandbox() ? self::SANDBOX_BASE_URL : self::PRODUCTION_BASE_URL;
+    }
+
+    public function getHostedPaymentUrl(): string
+    {
+        return $this->getBaseUrl() . self::HOSTED_PAYMENT_PATH;
+    }
+
+    public function getRefundUrl(): string
+    {
+        return $this->getBaseUrl() . self::REFUND_PATH;
+    }
+
+    public function getRequeryUrl(): string
+    {
+        return $this->getBaseUrl() . self::REQUERY_PATH;
+    }
+
+    public function getBackendUrl(): ?string
+    {
+        $backendUrl = trim((string) $this->getValue(self::KEY_BACKEND_URL));
+
+        return $backendUrl !== '' ? $backendUrl : null;
+    }
+
+    public function getRefundStatusLabel($statusId): string
+    {
+        $labels = [
+            self::REFUND_STATUS_PENDING => 'Pending',
+            self::REFUND_STATUS_PROCESSING => 'Processing',
+            self::REFUND_STATUS_REFUNDED => 'Refunded',
+            '3401' => 'Over Refund Window',
+            '3402' => 'Transaction Not Found',
+            '3410' => 'Refund Not Allow',
+            '3420' => 'Partial Refund Not Allow',
+            '3430' => 'Refund Over Transaction Amount',
+            '3440' => 'Gateway Failed to Refund',
+            '3900' => 'Cancelled',
+        ];
+
+        return $labels[(string) $statusId] ?? 'Unknown';
+    }
+
+    public function isSuccessfulRefundStatus($statusId): bool
+    {
+        return in_array((string) $statusId, [
+            self::REFUND_STATUS_PENDING,
+            self::REFUND_STATUS_PROCESSING,
+            self::REFUND_STATUS_REFUNDED,
+        ], true);
     }
 
     /**
@@ -175,7 +272,6 @@ class Config extends \Magento\Payment\Gateway\Config\Config
      */
     public function getSandbox(): ?bool
     {
-        return $this->getValue(self::KEY_SANDBOX);
+        return (bool) $this->getValue(self::KEY_SANDBOX);
     }
 }
-

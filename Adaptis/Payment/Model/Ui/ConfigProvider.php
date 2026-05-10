@@ -38,6 +38,8 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     'walletMethods'                       => $this->adaptisPaymentGatewayConfig->getWalletMethods(),
                     'buyNowPayLaterMethods'               => $this->adaptisPaymentGatewayConfig->getBuyNowPayLaterMethods(),
                     'groupPaymentMethodsByTypeOnCheckout' => $this->adaptisPaymentGatewayConfig->getGroupPaymentMethodsByTypeOnCheckout(),
+                    'sandbox'                             => $this->adaptisPaymentGatewayConfig->getSandbox(),
+                    'sandboxWarning'                      => (string) __('You are in test mode. No actual payment is made in this mode.'),
                 ],
             ],
         ];

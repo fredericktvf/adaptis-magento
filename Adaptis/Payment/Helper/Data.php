@@ -123,7 +123,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             'signature_type' => 'HMACSHA512',
             'signature'      => $signature,
             'response_url'   => $this->magentoUrlBuilder->getUrl('adaptis_payment/checkout/redirect'),
-            'backend_url'    => $this->magentoUrlBuilder->getUrl('adaptis_payment/checkout/callback')
+            'backend_url'    => $this->adaptisPaymentGatewayConfig->getBackendUrl()
+                ?: $this->magentoUrlBuilder->getUrl('adaptis_payment/checkout/callback'),
+            'hosted_payment_url' => $this->adaptisPaymentGatewayConfig->getHostedPaymentUrl(),
         ];
     }
 
@@ -134,11 +136,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             'ref_no'        => $params['RefNo'] ?? '',
             'amount'        => $params['Amount'] ?? '',
             'currency'      => $params['Currency'] ?? '',
-            'trans_id'      => $params['TransId'] ?? '',
+            'trans_id'      => $params['TransId'] ?? $params['TransID'] ?? '',
             'remark'        => $params['Remark'] ?? '',
-            'status'        => $params['TransactionStatusId'] ?? '',
-            'err_desc'      => $params['ErrorDescription'] ?? '',
-            'payment_id'    => $params['PaymentID'] ?? '',
+            'status'        => $params['TransactionStatusId'] ?? $params['TransactionStatusID'] ?? '',
+            'err_desc'      => $params['ErrorDescription'] ?? $params['ErrorInfo']['ErrorDescription'] ?? '',
+            'payment_id'    => $params['PaymentID'] ?? $params['PaymentId'] ?? '',
             'auth_code'     => $params['AuthCode'] ?? '',
             'cc_name'       => $params['PayerName'] ?? '',
             'cc_no'         => $params['CardNumber'] ?? '',
@@ -156,20 +158,84 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             'ref_no'        => $params['RefNo'] ?? '',
             'amount'        => $params['Amount'] ?? '',
             'currency'      => $params['Currency'] ?? '',
-            'trans_id'      => $params['TransId'] ?? '',
+            'trans_id'      => $params['TransId'] ?? $params['TransID'] ?? '',
             'remark'        => $params['Remark'] ?? '',
-            'status'        => $params['TransactionStatusId'] ?? '',
-            'err_desc'      => $params['ErrorInfo']['ErrorDescription'] ?? '',
-            'payment_id'    => $params['PaymentInfo']['PaymentID'] ?? '',
+            'status'        => $params['TransactionStatusId'] ?? $params['TransactionStatusID'] ?? '',
+            'err_desc'      => $params['ErrorDescription'] ?? $params['ErrorInfo']['ErrorDescription'] ?? '',
+            'payment_id'    => $params['PaymentInfo']['PaymentID'] ?? $params['PaymentInfo']['PaymentId'] ?? '',
             'auth_code'     => $params['PaymentInfo']['AuthCode'] ?? '',
             'cc_name'       => $params['PaymentInfo']['PayerName'] ?? '',
             'cc_no'         => $params['PaymentInfo']['CardNumber'] ?? '',
             's_bankname'    => $params['PaymentInfo']['CardBankName'] ?? '',
             's_country'     => $params['PaymentInfo']['CardCountry'] ?? '',
             'tran_date'     => $params['PaymentInfo']['TransactionDate'] ?? '',
-            'signature'     => $params['Verification']['Signature'] ?? '',
+            'signature'     => $params['Verification']['Signature'] ?? $params['Signature'] ?? '',
 
         ];
+    }
+
+    public function buildRefundRequestData(
+        \Magento\Sales\Model\Order $order,
+        float $amount,
+        string $refundRefNo,
+        string $remark = ''
+    ): array {
+        $currency = $order->getOrderCurrencyCode();
+        $ipayId = (string) $order->getPayment()->getLastTransId();
+        $refundAmount = $this->formatAmountWithThousands($amount);
+
+        return [
+            'MerchantCode' => $this->adaptisPaymentGatewayConfig->getMerchantCode(),
+            'RequestType' => '10',
+            'IpayId' => $ipayId,
+            'RefNo' => $refundRefNo,
+            'RefundAmount' => $refundAmount,
+            'RefundCurrency' => $currency,
+            'Remark' => $remark !== '' ? $remark : 'Magento refund',
+            'Verification' => [
+                'SignatureType' => 'HMACSHA512',
+                'Signature' => $this->generateSignature([
+                    $ipayId,
+                    $refundRefNo,
+                    $this->formatAmountForSignature($amount),
+                    $currency,
+                ]),
+            ],
+        ];
+    }
+
+    public function buildRequeryRequestData(\Magento\Sales\Model\Order $order): array
+    {
+        $amount = (float) $order->getGrandTotal();
+        $refNo = $order->getIncrementId();
+
+        return [
+            'MerchantCode' => $this->adaptisPaymentGatewayConfig->getMerchantCode(),
+            'RefNo' => $refNo,
+            'Amount' => $this->formatAmountNoThousands($amount),
+            'Verification' => [
+                'SignatureType' => 'HMACSHA512',
+                'Signature' => $this->generateSignature([
+                    $refNo,
+                    $this->formatAmountForSignature($amount),
+                ]),
+            ],
+        ];
+    }
+
+    public function formatAmountWithThousands($amount): string
+    {
+        return number_format((float) $amount, 2, '.', ',');
+    }
+
+    public function formatAmountNoThousands($amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
+    }
+
+    public function formatAmountForSignature($amount): string
+    {
+        return str_replace(['.', ','], '', $this->formatAmountWithThousands($amount));
     }
 
     /**
@@ -179,7 +245,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isResponseSignatureExist(array $response): bool
     {
-        return isset($response['signature']);
+        return isset($response['signature']) && $response['signature'] !== '';
     }
 
     /**
@@ -192,7 +258,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         //. $query['RefNo'] . $hash_amount . $query['Currency'] . $query['TransId'] . $query['TransactionStatusId'] . $query['PaymentID'];
         $signature = $this->generateSignature([
             $response['ref_no'], //ref no
-            number_format($response['amount'],  2, '', ''), //amount
+            $this->formatAmountForSignature($response['amount']), //amount
             $response['currency'], //currency
             $response['trans_id'], //status
             $response['status'], //status
@@ -219,8 +285,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function generateSignature(array $source)
     {
-        $data = $this->magentoEncryptor->decrypt($this->adaptisPaymentGatewayConfig->getMerchantKey()) . $this->adaptisPaymentGatewayConfig->getMerchantCode() . implode('', $source);
-        $hashed =  hash_hmac('sha512', $data, $this->magentoEncryptor->decrypt($this->adaptisPaymentGatewayConfig->getMerchantKey()));
+        $merchantKey = $this->magentoEncryptor->decrypt($this->adaptisPaymentGatewayConfig->getMerchantKey());
+        $data = $merchantKey . $this->adaptisPaymentGatewayConfig->getMerchantCode() . implode('', $source);
+        $hashed =  hash_hmac('sha512', $data, $merchantKey);
 
         $this->adaptisPaymentLogger->info('[signature]', [
             'source'    => $source,

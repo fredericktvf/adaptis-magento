@@ -13,6 +13,9 @@
                 <currency>MYR</currency>
                 <can_initialize>1</can_initialize>
                 <can_use_checkout>1</can_use_checkout>
+                <can_refund>1</can_refund>
+                <can_refund_partial>1</can_refund_partial>
+                <backend_url></backend_url>
                 <sort_order>1</sort_order>
             </adaptis_payment>
         </payment>

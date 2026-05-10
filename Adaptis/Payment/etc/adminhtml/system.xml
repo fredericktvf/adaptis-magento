@@ -11,19 +11,34 @@
                 <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Title</label>
                 </field>
-                <field id="merchant_code" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Merchant Code</label>
+                <field id="sandbox" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sandbox Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="merchant_key" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Merchant Key</label>
+                <field id="sandbox_merchant_code" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sandbox Merchant Code</label>
+                </field>
+                <field id="sandbox_merchant_key" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sandbox Merchant Key</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
-                <field id="show_available_payment_types" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="production_merchant_code" translate="label" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Production Merchant Code</label>
+                </field>
+                <field id="production_merchant_key" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Production Merchant Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="backend_url" translate="label comment" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>BackendUrl</label>
+                    <comment>Optional. Leave empty to use the default Magento ADAPTIS callback URL.</comment>
+                </field>
+                <field id="show_available_payment_types" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Show available payment types</label>
                     <comment>Choose the payment types you want offer to the customers.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="online_banking_methods" translate="label" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="online_banking_methods" translate="label" type="multiselect" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Online Banking</label>
                     <source_model>Adaptis\Payment\Model\Config\Source\OnlineBanking</source_model>
                     <depends>
@@ -31,7 +46,7 @@
                     </depends>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="credit_card_methods" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="credit_card_methods" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Credit Card</label>
                     <source_model>Adaptis\Payment\Model\Config\Source\CreditCard</source_model>
                     <depends>
@@ -39,7 +54,7 @@
                     </depends>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="wallet_methods" translate="label" type="multiselect" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="wallet_methods" translate="label" type="multiselect" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Wallet</label>
                     <source_model>Adaptis\Payment\Model\Config\Source\Wallet</source_model>
                     <depends>
@@ -47,26 +62,22 @@
                     </depends>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="buy_now_pay_later_methods" translate="label" type="multiselect" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Wallet</label>
+                <field id="buy_now_pay_later_methods" translate="label" type="multiselect" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Buy Now Pay Later</label>
                     <source_model>Adaptis\Payment\Model\Config\Source\BuyNowPayLater</source_model>
                     <depends>
                         <field id="show_available_payment_types">1</field>
                     </depends>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="group_payment_methods_by_type_on_checkout" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="group_payment_methods_by_type_on_checkout" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Group payment methods by type on checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="show_available_payment_types">1</field>
                     </depends>
                 </field>
-                <field id="sandbox" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Sandbox</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="sort_order" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
                     <frontend_class>validate-number</frontend_class>
                 </field>

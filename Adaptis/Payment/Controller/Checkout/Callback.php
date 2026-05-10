@@ -71,6 +71,11 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
     protected $adaptisPaymentLogger;
 
     /**
+     * @var \Adaptis\Payment\Model\OrderStatusApplier
+     */
+    protected $adaptisPaymentOrderStatusApplier;
+
+    /**
      * Callback constructor.
      *
      * @param  \Magento\Framework\App\Action\Context  $context
@@ -100,7 +105,8 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
         \Magento\Sales\Model\Service\InvoiceService $magentoSalesInvoiceService,
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $magentoSalesInvoiceSender,
         \Adaptis\Payment\Helper\Data $adaptisPaymentDataHelper,
-        \Adaptis\Payment\Logger\Logger $adaptisPaymentLogger
+        \Adaptis\Payment\Logger\Logger $adaptisPaymentLogger,
+        \Adaptis\Payment\Model\OrderStatusApplier $adaptisPaymentOrderStatusApplier
     ) {
         parent::__construct($context);
 
@@ -117,6 +123,7 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
         $this->magentoSalesInvoiceSender       = $magentoSalesInvoiceSender;
         $this->adaptisPaymentDataHelper         = $adaptisPaymentDataHelper;
         $this->adaptisPaymentLogger             = $adaptisPaymentLogger;
+        $this->adaptisPaymentOrderStatusApplier = $adaptisPaymentOrderStatusApplier;
     }
 
     /**
@@ -127,10 +134,11 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
     {
         $raw_input = file_get_contents('php://input');
         $raw_input_decode = json_decode($raw_input, true);
+        $requestParams = is_array($raw_input_decode) ? $raw_input_decode : $this->magentoRequest->getParams();
 
-        $this->adaptisPaymentLogger->info('[callback - modified] params', $raw_input_decode ?? $this->magentoRequest->getParams());
+        $this->adaptisPaymentLogger->info('[callback - modified] params', $requestParams);
         
-        $responseData = $this->adaptisPaymentDataHelper->normalizeCallbackData($raw_input_decode ?? $this->magentoRequest->getParams());
+        $responseData = $this->adaptisPaymentDataHelper->normalizeCallbackData($requestParams);
 
         $this->adaptisPaymentLogger->info('[callback - modified] data', $responseData);
 
@@ -256,30 +264,12 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
 
         $this->magentoCache->save(1, "adaptis_payment_processing_{$salesOrder->getIncrementId()}");
 
-        $salesInvoice = $this->magentoSalesInvoiceService->prepareInvoice($salesOrder);
-        $salesInvoice->setTransactionId($response['trans_id']);
-        //            $salesInvoice->setRequestedCaptureCase();
-        $salesInvoice->register();
-
-        //            $salesOrder->setCustomerNoteNotify(! empty($data['send_email']));
-        $salesOrder->setIsInProcess(true);
-        $salesOrder->getPayment()->setLastTransId($response['trans_id']);
-        $salesOrder->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        $salesOrder->setStatus($this->magentoSalesOrderConfig->getStateDefaultStatus($salesOrder->getState()));
-        $salesOrder->addStatusToHistory($salesOrder->getStatus(), "Adaptis transaction #{$salesInvoice->getTransactionId()} success.");
-
-        $dbTransaction = $this->magentoDbTransactionFactory->create();
-        $dbTransaction->addObject($salesOrder);
-        $dbTransaction->addObject($salesInvoice);
-        $dbTransaction->save();
+        $this->adaptisPaymentOrderStatusApplier->applySuccessfulPayment($salesOrder, $response, 'backend callback');
 
         $this->magentoCache->remove("adaptis_payment_processing_{$salesOrder->getIncrementId()}");
 
-        $this->magentoSalesInvoiceSender->send($salesInvoice);
-
         $this->adaptisPaymentLogger->info('[callback - success] success', [
             'order'    => $salesOrder->getIncrementId(),
-            'invoice'  => $salesInvoice->getIncrementId(),
             'response' => $response,
         ]);
 
@@ -309,7 +299,7 @@ class Callback extends \Magento\Framework\App\Action\Action implements \Magento\
     protected function handleError(
         string $errorMessage,
         array $responseData,
-        \Magento\Sales\Model\Order $salesOrder = null
+        ?\Magento\Sales\Model\Order $salesOrder = null
     ): void {
         if ($salesOrder) {
             $this->magentoSalesOrderManagement->cancel($salesOrder->getId());

@@ -68,6 +68,14 @@ define([
       return !!this.getConfig().groupPaymentMethodsByTypeOnCheckout
     },
 
+    isSandboxMode () {
+      return !!this.getConfig().sandbox
+    },
+
+    getSandboxWarning () {
+      return this.getConfig().sandboxWarning || ''
+    },
+
     afterPlaceOrder () {
       MagentoCheckoutRedirectOnSuccessAction.redirectUrl = MagentoUrl.build('adaptis_payment/checkout/index')
     },

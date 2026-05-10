@@ -26,6 +26,9 @@
         <!-- ko template: getTemplate() --><!-- /ko -->
       <!--/ko-->
     </div>
+    <!-- ko if: isSandboxMode() -->
+    <div class="adaptis-sandbox-warning" data-bind="text: getSandboxWarning()"></div>
+    <!-- /ko -->
     <div class="checkout-agreements-block">
       <!-- ko foreach: $parent.getRegion('before-place-order') -->
         <!-- ko template: getTemplate() --><!-- /ko -->
