@@ -1,0 +1,23 @@
+{
+  "name": "adaptis/payment",
+  "version": "1.0.0",
+  "description": "ADAPTIS payment for Magento 2.3 and 2.4",
+  "type": "magento2-module",
+  "require": {
+    "magento/framework": "*",
+    "magento/module-checkout": "100.3.*",
+    "magento/module-payment": "100.3.*",
+    "magento/module-sales": "102.0.*"
+  },
+  "license": [
+    "GNU General Public License (GPL)"
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Adaptis\\Payment\\": ""
+    }
+  }
+}

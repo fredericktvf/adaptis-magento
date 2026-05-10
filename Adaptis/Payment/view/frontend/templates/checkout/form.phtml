@@ -1,0 +1,41 @@
+<?php
+/**
+ * @var \Adaptis\Payment\Block\Checkout\Form $block
+ */
+?>
+<h1><?= __('Redirecting to Adaptis') ?></h1>
+<p><?= __('Processing, please wait. Do not click refresh/back button or this transaction may be interrupted or terminated.') ?></p>
+<form
+  id="adaptis-payment-checkout-form"
+  method="post"
+  action="<?= $block->isSandboxEnabled() ? 'https://pay.meglabox.com/entry/ipayhosted' : 'https://pay.adaptispay.com/entry/ipayhosted' ?>"
+>
+    <input type="hidden" name="MerchantCode" value="<?= $block->getMerchantCode() ?>">
+    <input type="hidden" name="RefNo" value="<?= $block->getRefNo() ?>">
+    <input type="hidden" name="RequestType" value="10">
+    <input type="hidden" name="Amount" value="<?= $block->getAmount() ?>">
+    <input type="hidden" name="Currency" value="<?= $block->getCurrency() ?>">
+    <input type="hidden" name="ProdDesc" value="<?= $block->getProdDesc() ?>">
+    <input type="hidden" name="Name" value="<?= $block->getUserName() ?>">
+    <input type="hidden" name="Email" value="<?= $block->getUserEmail() ?>">
+    <input type="hidden" name="ContactNumber" value="<?= $block->getUserContact() ?>">
+    <input type="hidden" name="BillingAddressLine1" value="<?= $block->getStreet() ?>">
+    <!-- optional -->
+    <input type="hidden" name="BillingAddressLine2" value=""> 
+    <input type="hidden" name="BillingAddressLine3" value="">
+    <input type="hidden" name="BillingAddressState" value="<?= $block->getState() ?>">
+    <input type="hidden" name="BillingAddressCity" value="<?= $block->getCity() ?>">
+    <input type="hidden" name="BillingAddressPostalCode" value="<?= $block->getPostalCode() ?>">
+    <input type="hidden" name="BillingAddressCountry" value="<?= $block->getCountry() ?>">
+    <input type="hidden" name="SignatureType" value="<?= $block->getSignatureType() ?>">
+    <input type="hidden" name="Signature" value="<?= $block->getSignature() ?>">
+    <input type="hidden" name="ResponseURL" value="<?= $block->getResponseUrl() ?>">
+    <input type="hidden" name="BackendURL" value="<?= $block->getBackendUrl() ?>">
+    <input type="hidden" name="PaymentId" value="<?= $block->getPaymentId() ?>"> 
+</form>
+<script>
+  (function (){
+    const $form = window.document.getElementById('adaptis-payment-checkout-form')
+    $form.submit()
+  })()
+</script>

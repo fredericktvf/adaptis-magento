@@ -1,0 +1,22 @@
+<?php
+/**
+ * @var \Adaptis\Payment\Block\Sales\Order\Info $block
+ */
+?>
+<p><?= $block->escapeHtml($block->getMethod()->getTitle()) ?></p>
+<?php if ($block->getPaymentType()) : ?>
+    <table class="admin__table-secondary">
+        <tbody>
+        <tr>
+            <th>Payment Type</th>
+            <td><?= $block->escapeHtml($block->getPaymentType()) ?></td>
+        </tr>
+        <?php if ($block->getLastTransId()): ?>
+          <tr>
+              <th>Transaction ID</th>
+            <td><?= $block->escapeHtml($block->getLastTransId()) ?></td>
+          </tr>
+        <?php endif ?>
+        </tbody>
+    </table>
+<?php endif; ?>

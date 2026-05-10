@@ -1,0 +1,16 @@
+.adaptis-payment-types .adaptis-payment-type-group-header {
+  margin-bottom: 1rem;
+}
+
+.adaptis-payment-types .adaptis-payment-type-label {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  margin: 1em 0;
+}
+
+.adaptis-payment-types .adaptis-payment-type-logo {
+  height: 3em;
+  margin-left: 1em;
+  margin-right: 1em;
+}

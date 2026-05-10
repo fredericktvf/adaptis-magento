@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="adaptis_payment" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>ADAPTIS Payment</label>
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title</label>
+                </field>
+                <field id="merchant_code" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Merchant Code</label>
+                </field>
+                <field id="merchant_key" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Merchant Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="show_available_payment_types" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Show available payment types</label>
+                    <comment>Choose the payment types you want offer to the customers.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="online_banking_methods" translate="label" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Online Banking</label>
+                    <source_model>Adaptis\Payment\Model\Config\Source\OnlineBanking</source_model>
+                    <depends>
+                        <field id="show_available_payment_types">1</field>
+                    </depends>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="credit_card_methods" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Credit Card</label>
+                    <source_model>Adaptis\Payment\Model\Config\Source\CreditCard</source_model>
+                    <depends>
+                        <field id="show_available_payment_types">1</field>
+                    </depends>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="wallet_methods" translate="label" type="multiselect" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Wallet</label>
+                    <source_model>Adaptis\Payment\Model\Config\Source\Wallet</source_model>
+                    <depends>
+                        <field id="show_available_payment_types">1</field>
+                    </depends>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="buy_now_pay_later_methods" translate="label" type="multiselect" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Wallet</label>
+                    <source_model>Adaptis\Payment\Model\Config\Source\BuyNowPayLater</source_model>
+                    <depends>
+                        <field id="show_available_payment_types">1</field>
+                    </depends>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="group_payment_methods_by_type_on_checkout" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Group payment methods by type on checkout</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="show_available_payment_types">1</field>
+                    </depends>
+                </field>
+                <field id="sandbox" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sandbox</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sort Order</label>
+                    <frontend_class>validate-number</frontend_class>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
